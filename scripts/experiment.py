@@ -75,7 +75,7 @@ class Experiment:
             scene_copy = deepcopy(self.scenes[i])
 
             if self.search_algorithm == 'astar':
-                init_state = disc_state_problem.State(self.robot_setting.init_footprint, self.robot_setting.start_x,
+                init_state = disc_state_problem.DiscState(self.robot_setting.init_footprint, self.robot_setting.start_x,
                                                       self.robot_setting.start_y, self.robot_setting.start_theta)
 
                 problem_instance = disc_state_problem.Problem(

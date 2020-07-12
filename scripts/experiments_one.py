@@ -82,7 +82,7 @@ SCENES['truep'] = Scene(X_MAX, Y_MAX, WORLD, 10000, COLORS)
 
 for sampling_algorithm in ['sprt', 'mc']:
     for search_algorithm in ['rrt', 'astar']:
-        collision_probs = [0.25, 0.1, 0.01]
+        collision_probs = [0.01, 0.1, 0.25]
 
         for max_collision_prob in collision_probs:
             experiment = Experiment("%s_%s_%s_%s" % (SCENE_NAME, search_algorithm, sampling_algorithm,

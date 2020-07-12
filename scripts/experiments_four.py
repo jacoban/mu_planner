@@ -13,7 +13,7 @@ import pyro
 # also sets normal random seed
 pyro.set_rng_seed(101)
 
-SCENE_NAME = date.today().strftime("%d-%m-%Y") + '_scene_3'
+SCENE_NAME = date.today().strftime("%d-%m-%Y") + '_scene_4'
 
 ### ROBOT SETTING
 
@@ -28,8 +28,8 @@ INIT_FOOTPRINT = Footprint(VEHICLE_SHAPE, START_X, START_Y, START_THETA)
 
 GOAL_X_MIN = 4.5
 GOAL_X_MAX = 5.5
-GOAL_Y_MIN = 8
-GOAL_Y_MAX = 9
+GOAL_Y_MIN = 8.0
+GOAL_Y_MAX = 9.0
 GOAL_THETA_MIN = math.pi * 0.
 GOAL_THETA_MAX = math.pi * 2.
 
@@ -40,24 +40,24 @@ robot_setting = RobotSetting(INIT_FOOTPRINT, START_X, START_Y, START_THETA, GOAL
 
 ### SCENE
 # first hyp
-O111_mean = [2., 2.5, 0]
+O111_mean = [0., 2.0, 0]
 O111_cov = [[0.05, 0, 0], [0, 0.05, 0], [0, 0, 0.03]]
-O111_shape = Polygon([[0, 0], [6, 0], [6, 1], [0, 1]])
+O111_shape = Polygon([[0, 0], [10, 0], [10, 0.5], [0, 0.5]])
 O111 = (O111_mean, O111_cov, O111_shape)
 
 # second hyp
-O121_mean = [2., 5.7, 0]
+O121_mean = [3., 5.5, 0]
 O121_cov = [[0.25, 0, 0], [0, 0.25, 0], [0, 0, 0.1]]
-O121_shape = Polygon([[0, 0], [5.7, 0], [5.7, 1], [0, 1]])
+O121_shape = Polygon([[0, 0], [4, 0], [4, 1], [0, 1]])
 O121 = (O121_mean, O121_cov, O121_shape)
 
 R11 = [O111]
 R12 = [O121]
 
-S1 = ([0.5, 0.5], [R11, R12])
+S1 = ([0.15, 0.85], [R11, R12])
 
 WORLD = [S1]
-COLORS = [["blue", "#2980b9"]]
+COLORS = [["red", "#2980b9"]]
 
 X_MAX = 10.
 Y_MAX = 10.
@@ -70,9 +70,9 @@ for i in range(200):
 SCENES['truep'] = Scene(X_MAX, Y_MAX, WORLD, 10000, COLORS)
 ### END SCENE
 
-for sampling_algorithm in ['sprt', 'mc']:
+for sampling_algorithm in ['sprt','mc']:
     for search_algorithm in ['rrt', 'astar']:
-        collision_probs = [0.01, 0.1, 0.25]
+        collision_probs = [0.25]
 
         for max_collision_prob in collision_probs:
             experiment = Experiment("%s_%s_%s_%s" % (SCENE_NAME, search_algorithm, sampling_algorithm,

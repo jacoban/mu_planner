@@ -12,10 +12,13 @@ def theta_distance_sq(theta1, theta2):
     return (1.0 - math.cos(theta1 - theta2)) ** 2
 
 
-def get_closest_node(nodes_list, target_x, target_y, target_theta, wp=0.5, wt=0.5):
+def get_closest_node(nodes_list_full, target_x, target_y, target_theta, wp=0.5, wt=0.5):
     """
     Implementation of the distance function used by Lavalle and Kuffner.
     """
+    # do not consider nodes that cannot be expanded further
+    nodes_list = list(filter(lambda x: x.state.actions is None or len(x.state.actions) > 0, nodes_list_full))
+
     l2_dists = list(map(lambda n: l2_distance_sq(n.state.x, n.state.y, target_x, target_y), nodes_list))
     theta_dists = list(map(lambda n: theta_distance_sq(n.state.theta, target_theta), nodes_list))
 

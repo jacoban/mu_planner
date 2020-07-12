@@ -16,9 +16,12 @@ from footprint import Footprint
 import sprt
 import ztest
 
+# Hybrid A* disc
+XY_DISC = 0.25
+THETA_DISC = math.pi / 2
 
-MINSAMPLES = dict([(0.01, 211), (0.1, 103), (0.25, 100)])
-MAXSAMPLES = dict([(0.01, 225), (0.1, 225), (0.25, 225)])
+MINSAMPLES = dict([(0.01, 300), (0.1, 128), (0.25, 110)]) # for baseline
+MAXSAMPLES = dict([(0.01, 300), (0.1, 250), (0.25, 250)])
 
 
 class State:
@@ -34,6 +37,9 @@ class State:
 
         # the immediately preceding state in the trajectory
         self.prev = prev
+
+        # avoids recomputation whenever possible with RRT
+        self.actions = None
 
     def __eq__(self, other):
         assert isinstance(other, State)
@@ -99,6 +105,9 @@ class Problem(aima.search.Problem):
 
         super().__init__(initial, goal)
 
+        # default is continuous
+        self.discrete = False
+
         # the global, deterministic settings
         self.scene = scene
 
@@ -144,11 +153,17 @@ class Problem(aima.search.Problem):
         (2) probability of robot colliding with probabilistic
             obstacles is within the threshold.
         """
+        if not self.discrete and state.actions is not None:
+            # print("Reusing actions")
+            return state.actions
 
         actions = []
 
         configs = get_new_configurations_from_primitives(
             state.x, state.y, state.theta, self.motion_primitives)
+
+        if self.discrete:
+            occupied_cells = set()
 
         for mp_index in range(len(configs)):
             config = configs[mp_index]
@@ -157,6 +172,13 @@ class Problem(aima.search.Problem):
             theta = config[2]
 
             new_footprint = Footprint(self.vehicle_shape, x, y, theta)
+
+            # speedup: avoid considering a given footprint if corresponding A* cell is already occupied
+            tentative_cell = (int(math.ceil(x / XY_DISC)), int(math.ceil(y / XY_DISC)),
+                              int(math.floor(theta % (2 * math.pi) / THETA_DISC)))
+
+            if self.discrete and tentative_cell in occupied_cells:
+                continue
 
             # 1st check: the robot remains in the map
 
@@ -172,7 +194,7 @@ class Problem(aima.search.Problem):
                 return not world_collides_new_state(next(witer), state, new_footprint)
 
             if self.hyptest == 'sprt':
-                no_collision = sprt.pr_gt(sample_no_collision, prob=1 - self.max_crash_prob, alpha=0.05, beta=0.6,
+                no_collision = sprt.pr_gt(sample_no_collision, prob=1 - self.max_crash_prob, alpha=0.05, beta=0.2,
                                           nsamples_max=self.max_samples)
 
             elif self.hyptest == 'mc':
@@ -181,6 +203,12 @@ class Problem(aima.search.Problem):
 
             if no_collision:
                 actions.append(Action(new_footprint, x, y, theta))
+
+                if self.discrete:
+                    occupied_cells.add(tentative_cell)
+
+        if not self.discrete:
+            state.actions = actions
 
         return actions
 

@@ -67,12 +67,67 @@ def write_latex_table_code(log_folder, c_prob, nodes, checks, solved, times, cos
     f.close()
 
 
+def write_latex_table_code_25(log_folder, c_prob, nodes, checks, solved, times, costs, p_coll):
+    f = open(log_folder + "/table_prob_" + str(c_prob) + ".tex", "w")
+
+    final_list = []
+    for scene in ['scene_1', 'scene_2', 'scene_3', 'scene_4']:
+        for alg in ['rrt', 'astar']:
+            for method in ['sprt', 'mc']:
+                final_list += [solved[scene][alg][method], checks[scene][alg][method],
+                               times[scene][alg][method], p_coll[scene][alg][method]]
+
+    final_tuple = tuple(final_list + [str(c_prob)])
+
+    latex_string = """
+
+\\begin{table}[t]
+\\begin{scriptsize}
+\\centering
+\\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\multicolumn{2}{|l|}{MG-HU} & \\%% & Checks ($\\times 10^{6}$) & Time (s) & $p_{coll}(\pi)$ \\\ \hline
+\multirow{2}{*}{RRT}  & SPRT  & %s & %s & %s & %s  \\\ \cline{2-6} 
+                      &  MC & %s & %s & %s & %s  \\\ \hline
+\multirow{2}{*}{HA*}  & SPRT  & %s & %s   & %s & %s \\\ \cline{2-6} 
+                      &  MC & %s & %s & %s & %s   \\\ \hline
+\multicolumn{2}{|l|}{MG-SU} &  &   & &  \\\ \hline
+\multirow{2}{*}{RRT}  & SPRT  & %s &  %s  & %s & %s \\\ \cline{2-6} 
+                      &  MC & %s & %s &  %s  & %s \\\ \hline
+\multirow{2}{*}{HA*}  & SPRT &  %s  & %s & %s & %s \\\ \cline{2-6} 
+                      &  MC & %s & %s &  %s  & %s \\\ \hline
+\multicolumn{2}{|l|}{HG-HU}  &    &  &  & \\\ \hline
+\multirow{2}{*}{RRT}  & SPRT &  %s  & %s & %s & %s \\\ \cline{2-6} 
+                      &  MC & %s &  %s  & %s & %s \\\ \hline
+\multirow{2}{*}{HA*}  & SPRT   & %s & %s & %s & %s \\\ \cline{2-6} 
+                     & MC & %s &  %s  & %s & %s \\\ \hline
+
+\multicolumn{2}{|l|}{BL}  &    &  &  & \\\ \hline
+\multirow{2}{*}{RRT}  & SPRT &  %s  & %s & %s & %s \\\ \cline{2-6} 
+                      &  MC & %s &  %s  & %s & %s \\\ \hline
+\multirow{2}{*}{HA*}  & SPRT   & %s & %s & %s & %s \\\ \cline{2-6} 
+                     & MC & %s &  %s  & %s & %s \\\ \hline
+
+\end{tabular}
+\caption{SPRT vs Naive MC, $p_{max}=%s$.}
+\label{tab:my-table}
+\\end{scriptsize}
+\end{table}""" % final_tuple
+
+    f.write(latex_string)
+    f.close()
+
+
 if __name__ == "__main__":
     argv = gflags.FLAGS(sys.argv)
 
     c_prob = gflags.FLAGS.c_prob
 
     scenes = ['scene_1', 'scene_2', 'scene_3']
+
+    if c_prob == "0.25":
+        scenes += ['scene_4']
+
     algs = ['rrt', 'astar']
     methods = ['sprt', 'mc']
 
@@ -145,5 +200,7 @@ if __name__ == "__main__":
                     costs[scene][alg][method] = "AAA"
                     p_coll[scene][alg][method] = "AAA"
 
-
-    write_latex_table_code(log_folder, c_prob, nodes, checks, solved, times, costs, p_coll)
+    if float(c_prob) < 0.2:
+        write_latex_table_code(log_folder, c_prob, nodes, checks, solved, times, costs, p_coll)
+    else:
+        write_latex_table_code_25(log_folder, c_prob, nodes, checks, solved, times, costs, p_coll)
