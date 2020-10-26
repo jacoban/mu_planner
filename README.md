@@ -1,6 +1,6 @@
 # mixed_uncertainty_planner
 
-Developed and tested with Python 3.6.
+Developed for (and only tested with) Python 3.6.
 
 Full instructions to replicate the results in the paper:
 
